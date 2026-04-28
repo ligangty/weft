@@ -21,11 +21,11 @@ import jakarta.inject.Inject;
 import java.util.concurrent.ExecutorService;
 
 @ApplicationScoped
-public class ContextSensitiveWeakHashMapTest extends AbstractContextSensitiveWeakHashMapTest {
+public class ContextSensitiveWeakHashMapVirtualTest extends AbstractContextSensitiveWeakHashMapTest {
     /*Inject an ExecutorService instance using @WeftManaged.*/
     @WeftManaged
-    @ExecutorConfig(named = "pooled", threads = 2)
     @Inject
+    @VirtualThreadExecutor(named="virtual-test")
     private ExecutorService executor;
 
     ExecutorService getExecutor() {
@@ -33,14 +33,12 @@ public class ContextSensitiveWeakHashMapTest extends AbstractContextSensitiveWea
     }
 
     @Override
-    protected ExecutorService getExecutorService(){
-        ContextSensitiveWeakHashMapTest client =
-                container.select(ContextSensitiveWeakHashMapTest.class).get();
-        return client.getExecutor();
+    protected ExecutorService getExecutorService() {
+        return container.select(ContextSensitiveWeakHashMapVirtualTest.class).get().getExecutor();
     }
 
     @Override
     protected Class<? extends ExecutorService> getAssertionExecutorService() {
-        return PoolWeftExecutorService.class;
+        return VirtualThreadWeftExecutorService.class;
     }
 }

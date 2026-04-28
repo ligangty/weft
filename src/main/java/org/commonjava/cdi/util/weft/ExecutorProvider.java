@@ -1,12 +1,12 @@
 /**
  * Copyright (C) 2013-2022 Red Hat, Inc. (https://github.com/Commonjava/weft)
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *         http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -26,33 +26,39 @@ import org.slf4j.LoggerFactory;
 import java.util.concurrent.ScheduledExecutorService;
 
 @ApplicationScoped
-public class ExecutorProvider
-{
-    private final Logger logger = LoggerFactory.getLogger( getClass() );
+public class ExecutorProvider {
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Inject
     private WeftPoolBoy poolBoy = new WeftPoolBoy();
 
     @Produces
     @WeftManaged
-    public WeftExecutorService getExecutorService( final InjectionPoint ip )
-    {
-        return getExec( ip, false );
+    public WeftExecutorService getExecutorService(final InjectionPoint ip) {
+        return getExec(ip, false);
     }
 
     @Produces
     @WeftScheduledExecutor
-    public ScheduledExecutorService getScheduledExecutorService( final InjectionPoint ip )
-    {
-        return (ScheduledExecutorService) getExec( ip, true );
+    public ScheduledExecutorService getScheduledExecutorService(final InjectionPoint ip) {
+        return (ScheduledExecutorService) getExec(ip, true);
     }
 
-    private WeftExecutorService getExec( final InjectionPoint ip, final boolean scheduled )
-    {
-        final ExecutorConfig ec = ip.getAnnotated()
-                                    .getAnnotation( ExecutorConfig.class );
+    private WeftExecutorService getExec(final InjectionPoint ip, final boolean scheduled) {
+        final boolean hasVirtualConfig = ip.getAnnotated().isAnnotationPresent(VirtualThreadExecutor.class);
+        final boolean hasExecutorConfig = ip.getAnnotated().isAnnotationPresent(ExecutorConfig.class);
 
-        return poolBoy.getPool( ec, scheduled );
+        if (hasVirtualConfig && hasExecutorConfig) {
+            throw new IllegalStateException("ExecutorConfig and VirtualConfig can not be used together!");
+        }
+        if (hasVirtualConfig) {
+            final VirtualThreadExecutor vc = ip.getAnnotated().getAnnotation(VirtualThreadExecutor.class);
+            return poolBoy.getVirtual(vc);
+        } else {
+            final ExecutorConfig ec = ip.getAnnotated()
+                    .getAnnotation(ExecutorConfig.class);
+            return poolBoy.getPool(ec, scheduled);
+        }
     }
 
 }

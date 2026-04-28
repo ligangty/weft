@@ -39,7 +39,7 @@
   </scm>
 
   <properties>
-    <javaVersion>11</javaVersion>
+    <javaVersion>21</javaVersion>
     <projectOwner>Red Hat, Inc.</projectOwner>
     <projectEmail>https://github.com/Commonjava/weft</projectEmail>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

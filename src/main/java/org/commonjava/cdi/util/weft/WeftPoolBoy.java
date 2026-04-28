@@ -143,6 +143,29 @@ public class WeftPoolBoy
         }
     }
 
+    public synchronized WeftExecutorService getVirtual(final VirtualThreadExecutor vc) {
+        final String name;
+        if (vc != null) {
+            name = vc.named();
+        } else {
+            name = DUMMY_NAME;
+        }
+        WeftExecutorService service = getPool(name);
+        if (service == null && (!config.isEnabled() || !config.isEnabled(name))) {
+            throw new IllegalStateException("Cannot create executor for disabled scheduled executor: " + name);
+        }
+
+        if (service == null) {
+            service = new VirtualThreadWeftExecutorService(name);
+
+            // TODO: Wrapper ThreadPoolExecutor that wraps Runnables to store/copy MDC when it gets created/started.
+
+            addPool(service);
+        }
+
+        return service;
+    }
+
     /**
      * Get pool programmatically. The parameters can be overridden via configuration file. If no config, this will create thread pool as is.
      */
